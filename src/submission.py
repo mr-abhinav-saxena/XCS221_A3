@@ -170,6 +170,24 @@ def simulate_QL_over_MDP(mdp, featureExtractor):
     # ### END CODE HERE ###
 
 ############################################################
+# Problem 4c: features for Q-learning.
+
+# You should return a list of (feature key, feature value) pairs.
+# (See identityFeatureExtractor() above for a simple example.)
+# Include the following features in the list you return:
+# -- Indicator for the action and the current total (1 feature).
+# -- Indicator for the action and the presence/absence of each face value in the deck.
+#       Example: if the deck is (3, 4, 0, 2), then your indicator on the presence of each card is (1, 1, 0, 1)
+#       Note: only add this feature if the deck is not None.
+# -- Indicators for the action and the number of cards remaining with each face value (len(counts) features).
+#       Note: only add these features if the deck is not None.
+def blackjackFeatureExtractor(state, action):
+    total, nextCard, counts = state
+
+    # ### START CODE HERE ###
+    # ### END CODE HERE ###
+
+############################################################
 # Problem 4d: What happens when the MDP changes underneath you?!
 
 # Original mdp
