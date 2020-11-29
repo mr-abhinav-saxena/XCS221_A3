@@ -42,7 +42,7 @@ class AddNoiseMDP(util.MDP):
 class Test_2a(GradedTestCase):
   @graded(is_hidden=True)
   def test_hidden(self):
-    """2a-hidden:  Hidden test for CounterexampleMDP. Ensure that V[startState] is greater after noise is added."""
+    """2a-hidden-0:  Hidden test for CounterexampleMDP. Ensure that V[startState] is greater after noise is added."""
     mdp = submission.CounterexampleMDP()
     mdp.computeStates()
     algorithm = submission.ValueIteration()
@@ -58,7 +58,7 @@ class Test_2a(GradedTestCase):
 class Test_3a(GradedTestCase):
   @graded()
   def test_basic(self):
-    """3a-basic:  Basic test for succAndProbReward() that covers several edge cases."""
+    """3a-basic-0:  Basic test for succAndProbReward() that covers several edge cases."""
     mdp1 = submission.BlackjackMDP(cardValues=[1, 5], multiplicity=2,
                                    threshold=10, peekCost=1)
     startState = mdp1.startState()
@@ -87,7 +87,7 @@ class Test_3a(GradedTestCase):
 
   @graded(is_hidden=True)
   def test_hidden(self):
-    """3a-hidden:  Hidden test for ValueIteration. Run ValueIteration on BlackjackMDP, then test if V[startState] is correct."""
+    """3a-hidden-0:  Hidden test for ValueIteration. Run ValueIteration on BlackjackMDP, then test if V[startState] is correct."""
     mdp = submission.BlackjackMDP(cardValues=[1, 3, 5, 8, 10], multiplicity=3,
                                   threshold=40, peekCost=1)
     startState = mdp.startState()
@@ -100,7 +100,7 @@ class Test_3b(GradedTestCase):
 
   @graded()
   def test_basic(self):
-    """3b-basic:  Test for peekingMDP().  Ensure that in at least 10% of states, the optimal policy is to peek."""
+    """3b-basic-0:  Test for peekingMDP().  Ensure that in at least 10% of states, the optimal policy is to peek."""
     mdp = submission.peekingMDP()
     vi = submission.ValueIteration()
     vi.solve(mdp)
@@ -116,7 +116,7 @@ class Test_4a(GradedTestCase):
 
   @graded(timeout=10)
   def test_basic(self):
-    """4a-basic:  Basic test for incorporateFeedback() using NumberLineMDP."""
+    """4a-basic-0:  Basic test for incorporateFeedback() using NumberLineMDP."""
     mdp = util.NumberLineMDP()
     mdp.computeStates()
     rl = submission.QLearningAlgorithm(mdp.actions, mdp.discount(),
@@ -141,7 +141,7 @@ class Test_4a(GradedTestCase):
 
   @graded(timeout=3, is_hidden=True)
   def test_hidden(self):
-    """4a-hidden:  Hidden test for incorporateFeedback(). Run QLearningAlgorithm on smallMDP, then ensure that getQ returns reasonable value."""
+    """4a-hidden-0:  Hidden test for incorporateFeedback(). Run QLearningAlgorithm on smallMDP, then ensure that getQ returns reasonable value."""
     smallMDP = self.run_with_solution_if_possible(submission,
                                                   lambda sub_or_sol: sub_or_sol.BlackjackMDP(cardValues=[1,5], multiplicity=2, threshold=10, peekCost=1))
     smallMDP.computeStates()
@@ -161,7 +161,7 @@ class Test_4b(GradedTestCase):
 
   @graded(timeout=60)
   def test_helper(self):
-    """4b-helper:  Helper function to run Q-learning simulations for question 4b."""
+    """4b-helper-0:  Helper function to run Q-learning simulations for question 4b."""
     submission.simulate_QL_over_MDP(submission.smallMDP, submission.identityFeatureExtractor)
     submission.simulate_QL_over_MDP(submission.largeMDP, submission.identityFeatureExtractor)
     # NOTE:  This is bad unit testing practice- the course staff is including
@@ -176,7 +176,7 @@ class Test_4b(GradedTestCase):
 class Test_4c(GradedTestCase):
   @graded(timeout=10)
   def test_basic(self):
-    """4c-basic:  Basic test for blackjackFeatureExtractor.  Runs QLearningAlgorithm using blackjackFeatureExtractor, then checks to see that Q-values are correct."""
+    """4c-basic-0:  Basic test for blackjackFeatureExtractor.  Runs QLearningAlgorithm using blackjackFeatureExtractor, then checks to see that Q-values are correct."""
     mdp = submission.BlackjackMDP(cardValues=[1, 5], multiplicity=2,
                                   threshold=10, peekCost=1)
     mdp.computeStates()
@@ -195,7 +195,7 @@ class Test_4c(GradedTestCase):
 class Test_4d(GradedTestCase):
   @graded(timeout=60)
   def test_helper(self):
-    """4d-helper:  Helper function to compare rewards when simulating RL over two different MDPs in question 4d."""
+    """4d-helper-0:  Helper function to compare rewards when simulating RL over two different MDPs in question 4d."""
     submission.compare_changed_MDP(submission.originalMDP, submission.newThresholdMDP, submission.blackjackFeatureExtractor)
     # NOTE:  This is bad unit testing practice- the course staff is including
     # always-skipped tests to make the test suite a one-stop shop for students.
