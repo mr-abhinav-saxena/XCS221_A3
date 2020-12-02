@@ -9,5 +9,5 @@ triples.
 
 🐍
 import re
-with open('submission.tex') as f: print((re.search(r'% 📝_2b(.*?)% 📝_2b', f.read(), re.DOTALL)).group(1))
+with open('submission.tex') as f: print((re.search(r'% <SCPD_SUBMISSION_TAG>_2b(.*?)% <SCPD_SUBMISSION_TAG>_2b', f.read(), re.DOTALL)).group(1))
 🐍

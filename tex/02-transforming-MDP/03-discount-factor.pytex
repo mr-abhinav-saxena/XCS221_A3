@@ -17,5 +17,5 @@ MDP lecture and read closely the slides on convergence.}
 
 🐍
 import re
-with open('submission.tex') as f: print((re.search(r'% 📝_2c(.*?)% 📝_2c', f.read(), re.DOTALL)).group(1))
+with open('submission.tex') as f: print((re.search(r'% <SCPD_SUBMISSION_TAG>_2c(.*?)% <SCPD_SUBMISSION_TAG>_2c', f.read(), re.DOTALL)).group(1))
 🐍

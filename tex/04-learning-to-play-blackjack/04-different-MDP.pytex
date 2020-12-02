@@ -35,5 +35,5 @@ value iteration responds to a change in the rules of the MDP.
 
 🐍
 import re
-with open('submission.tex') as f: print((re.search(r'% 📝_4d(.*?)% 📝_4d', f.read(), re.DOTALL)).group(1))
+with open('submission.tex') as f: print((re.search(r'% <SCPD_SUBMISSION_TAG>_4d(.*?)% <SCPD_SUBMISSION_TAG>_4d', f.read(), re.DOTALL)).group(1))
 🐍

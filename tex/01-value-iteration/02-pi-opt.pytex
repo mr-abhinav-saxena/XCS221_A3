@@ -5,5 +5,5 @@ optimal policy $\pi_\text{opt}$ for all non-terminal states?
 
 🐍
 import re
-with open('submission.tex') as f: print((re.search(r'% 📝_1b(.*?)% 📝_1b', f.read(), re.DOTALL)).group(1))
+with open('submission.tex') as f: print((re.search(r'% <SCPD_SUBMISSION_TAG>_1b(.*?)% <SCPD_SUBMISSION_TAG>_1b', f.read(), re.DOTALL)).group(1))
 🐍
