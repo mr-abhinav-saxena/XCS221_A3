@@ -10,8 +10,8 @@ result of that action (|QLearningAlgorithm.incorporateFeedback|), so that it may
 learn better actions to perform in the future.
 
 We are using Q-learning with function approximation, which means
-$\hat Q_\text{opt}(s, a) = \mathbb w \cdot \phi(s, a)$, where in code,
-$\mathbb w$ is |self.weights|, $\phi$ is the |featureExtractor| function, and
+$\hat Q_\text{opt}(s, a) = \mathbb W \cdot \phi(s, a)$, where in code,
+$\mathbb W$ is |self.weights|, $\phi$ is the |featureExtractor| function, and
 $\hat Q_\text{opt}$ is |self.getQ|.
 
 We have implemented |QLearningAlgorithm.getAction| as a simple $\epsilon$-greedy
