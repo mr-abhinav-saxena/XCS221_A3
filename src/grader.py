@@ -39,22 +39,6 @@ class AddNoiseMDP(util.MDP):
 # TESTS #
 #########
 
-class Test_2a(GradedTestCase):
-  @graded(is_hidden=True)
-  def test_hidden(self):
-    """2a-hidden-0:  Hidden test for CounterexampleMDP. Ensure that V[startState] is greater after noise is added."""
-    mdp = submission.CounterexampleMDP()
-    mdp.computeStates()
-    algorithm = submission.ValueIteration()
-    algorithm.solve(mdp, .001)
-    originalVal = algorithm.V[mdp.startState()]
-    mdp = AddNoiseMDP(mdp)
-    mdp.computeStates()
-    algorithm.solve(mdp, .001)
-    newVal = algorithm.V[mdp.startState()]
-    # BEGIN_HIDE
-    # END_HIDE
-
 class Test_3a(GradedTestCase):
   @graded()
   def test_basic(self):
@@ -95,22 +79,6 @@ class Test_3a(GradedTestCase):
     alg.solve(mdp, .0001)
     # BEGIN_HIDE
     # END_HIDE
-
-class Test_3b(GradedTestCase):
-
-  @graded()
-  def test_basic(self):
-    """3b-basic-0:  Test for peekingMDP().  Ensure that in at least 10% of states, the optimal policy is to peek."""
-    mdp = submission.peekingMDP()
-    vi = submission.ValueIteration()
-    vi.solve(mdp)
-    self.assertEqual(mdp.threshold, 20)
-    self.assertEqual(mdp.peekCost, 1)
-    f = len([a for a in list(vi.pi.values()) if a == 'Peek']) / float(len(list(vi.pi.values())))
-    self.assertLess(.1, f)
-    # Feel free to uncomment these lines if you'd like to print out states/actions
-    # for k, v in vi.pi.iteritems():
-    #     print k, v
 
 class Test_4a(GradedTestCase):
 
@@ -205,6 +173,41 @@ class Test_4d(GradedTestCase):
     # machines because the solution resources are not available on those
     # machines.
     self.skipTest("This test case is a helper function for students.")
+
+
+############################################################
+# Problem 5
+
+#BEGIN_HIDE
+#END_HIDE
+
+class Test_5a(GradedTestCase):
+  @graded(timeout=60)
+  def test_helper(self):
+    """5a-helper-0:  Helper function to compare optimal policies over various time horizons."""
+
+    submission.compare_MDP_Strategies(submission.short_time, submission.long_time)
+
+    self.skipTest("This test case is a helper function for students.")
+
+class Test_5c(GradedTestCase):
+  @graded(timeout=60)
+  def test_helper(self):
+    """5c-helper-0:  Helper function to compare optimal policies over various discounts."""
+
+    submission.compare_MDP_Strategies(submission.discounted, submission.no_discount)
+
+    self.skipTest("This test case is a helper function for students.")
+
+class Test_5d(GradedTestCase):
+  @graded(timeout=60)
+  def test_helper(self):
+    """5d-helper-0:  Helper function for exploring how optimal policies transfer across MDPs."""
+
+    submission.compare_changed_SeaLevelMDP(submission.low_cost, submission.high_cost)
+
+    self.skipTest("This test case is a helper function for students.")
+
 
 def getTestCaseForTestID(test_id):
   question, part, _ = test_id.split('-')

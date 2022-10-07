@@ -1,4 +1,5 @@
 import collections, random
+from typing import List, Tuple, Dict, Any 
 
 ############################################################
 
@@ -186,3 +187,30 @@ def simulate(mdp, rl, numTrials=10, maxIterations=1000, verbose=False,
             print(("Trial %d (totalReward = %s): %s" % (trial, totalReward, sequence)))
         totalRewards.append(totalReward)
     return totalRewards
+
+# sample a random trajectory through the MDP.
+# Start at the initial state and sample the optimal state from
+# the optimal policy. Then, randomly sample the next state from
+# the possible next states weighted by the probabilities per-state.
+# returns 
+def sample_trajectory(mdp : MDP, policy: MDPAlgorithm) -> List[Any]:
+
+    # get the first state
+    traj = []    
+    state = mdp.startState()
+    while True:
+        # look up optimal action for that state
+        act = policy.pi[state]
+        # this returns a list of next states
+        traj.append(act)
+        next_states = mdp.succAndProbReward(state, act)
+        if len(next_states) < 1:
+            break
+        # now, randomly sample one of the states weighted by probability
+        probs = [n[1] for n in next_states]
+        # then you go to the next state chosen
+        state = random.choices(next_states, weights=probs, k=1)[0][0]
+    return traj
+
+# BEGIN_HIDE
+# END_HIDE
