@@ -330,7 +330,7 @@ def sampleKRLTrajectories(mdp: SeaLevelRiseMDP, rl: QLearningAlgorithm):
     print(f"  *  ratio of invest to wait states: {invs/wats}\n")
     
 
-# This is a helper function for both 5b and 5d. This function runs 
+# This is a helper function for both 5a and 5c. This function runs 
 # ValueIteration, then simulates various trajectories through the MDP
 # and compares the frequency of various optimal actions.
 def compare_MDP_Strategies(mdp1: SeaLevelRiseMDP, mdp2: SeaLevelRiseMDP):
