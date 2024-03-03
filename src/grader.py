@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-import unittest, random, sys, copy, argparse, inspect
+import unittest, argparse, inspect
 from graderUtil import graded, CourseTestRunner, GradedTestCase
-import util
+
+import random, util, collections, json, math
+import numpy as np
 
 # Import student submission
 import submission
@@ -10,204 +12,283 @@ import submission
 # HELPER FUNCTIONS FOR CREATING TEST INPUTS #
 #############################################
 
-class AddNoiseMDP(util.MDP):
-    def __init__(self, originalMDP):
-        self.originalMDP = originalMDP
-
-    def startState(self):
-        return self.originalMDP.startState()
-
-    # Return set of actions possible from |state|.
-    def actions(self, state):
-        return self.originalMDP.actions(state)
-
-    # Return a list of (newState, prob, reward) tuples corresponding to edges
-    # coming out of |state|.
-    def succAndProbReward(self, state, action):
-        originalSuccAndProbReward = self.originalMDP.succAndProbReward(state, action)
-        newSuccAndProbReward = []
-        for state, prob, reward in originalSuccAndProbReward:
-            newProb = 0.5 * prob + 0.5 / len(originalSuccAndProbReward)
-            newSuccAndProbReward.append((state, newProb, reward))
-        return newSuccAndProbReward
-
-    # Return set of actions possible from |state|.
-    def discount(self):
-        return self.originalMDP.discount()
 
 #########
 # TESTS #
 #########
 
 class Test_3a(GradedTestCase):
+
   @graded()
-  def test_basic(self):
-    """3a-basic-0:  Basic test for succAndProbReward() that covers several edge cases."""
-    mdp1 = submission.BlackjackMDP(cardValues=[1, 5], multiplicity=2,
-                                   threshold=10, peekCost=1)
-    startState = mdp1.startState()
-    preBustState = (6, None, (1, 1))
-    postBustState = (11, None, None)
+  def test_0(self):
+    """3a-0-basic: Basic test of VI on problem 1."""
+    
+    mdp = util.NumberLineMDP()
+    pi = submission.run_VI_over_numberLine(mdp)
+    gold = {
+        -1: 1,
+        1: 2,
+        0: 2
+    }
+    for key in pi:
+        self.assertEqual(pi[key], gold[key], msg=f"Incorrect pi for the state: {key}")
 
-    mdp2 = submission.BlackjackMDP(cardValues=[1, 5], multiplicity=2,
-                                   threshold=15, peekCost=1)
-    preEmptyState = (11, None, (1,0))
+  @graded()
+  def test_1(self):
+    """3a-1-basic: Test on arbitrary n, reward and penalty."""
+    
+    mdp = util.NumberLineMDP(10, 30, -1, 20)
+    pi = submission.run_VI_over_numberLine(mdp)
+    with open("3a-1-gold.json", "r") as f:
+        gold = json.load(f)
 
-    # Make sure the succAndProbReward function is implemented correctly.
-    tests = [
-        ([((1, None, (1, 2)), 0.5, 0), ((5, None, (2, 1)), 0.5, 0)], mdp1, startState, 'Take'),
-        ([((0, 0, (2, 2)), 0.5, -1), ((0, 1, (2, 2)), 0.5, -1)], mdp1, startState, 'Peek'),
-        ([((0, None, None), 1, 0)], mdp1, startState, 'Quit'),
-        ([((7, None, (0, 1)), 0.5, 0), ((11, None, None), 0.5, 0)], mdp1, preBustState, 'Take'),
-        ([], mdp1, postBustState, 'Take'),
-        ([], mdp1, postBustState, 'Peek'),
-        ([], mdp1, postBustState, 'Quit'),
-        ([((12, None, None), 1, 12)], mdp2, preEmptyState, 'Take')
-    ]
-    for gold, mdp, state, action in tests:
-      # Feel free to uncomment this lines if you'd like to print out states/actions
-      # print(('   state: {}, action: {}'.format(state, action)))
-      self.assertEqual(gold, mdp.succAndProbReward(state, action))
+    for key in gold:
+        key_i = int(key)
+        self.assertTrue(key_i in pi, msg=f"Optimal policy for state {key} not computed!")
+        self.assertEqual(pi[key_i], gold[key], msg=f"Incorrect pi for the state: {key}")
+
+  @graded(timeout=14, is_hidden=True)
+  def test_2(self):
+    """3a-2-hidden: Hidden test to make sure the code runs fast enough."""
+
+    mdp = util.NumberLineMDP(n=500)
+    pi = submission.run_VI_over_numberLine(mdp)
+    # BEGIN_HIDE
+    # END_HIDE
+
+class Test_3b(GradedTestCase):
+  
+  @graded()
+  def test_0(self):
+    """3b-0-basic: Testing epsilon greedy for getAction."""
+
+    mdp = util.NumberLineMDP()
+    rl = submission.ModelBasedMonteCarlo(mdp.actions, mdp.discount, calcValIterEvery=1, explorationProb=0.2)
+    rl.pi = {
+        -1: 1,
+        1: 2,
+        0: 2
+    }
+    rl.numIters = 2e4
+    counts = {
+        -1: 0,
+        0: 0,
+        1: 0
+    }
+    for _ in range(10000):
+        for state in range(-mdp.n + 1, mdp.n):
+            action = rl.getAction(state)
+            if action == rl.pi[state]:
+                counts[state] += 1
+    for key in counts:
+        self.assertGreaterEqual(counts[key], 8800, msg=f"Too few optimal actions returned for the state {key}")
+        self.assertLessEqual(counts[key], 9200, msg=f"Too few random actions returned for the state {key}")
+
+  @graded()
+  def test_1(self):
+    """3b-1-basic: Casic test of incorporate feedback."""
+
+    mdp = util.NumberLineMDP()
+    rl = submission.ModelBasedMonteCarlo(mdp.actions, mdp.discount, calcValIterEvery=100, explorationProb=0.2)
+    rl.numIters = 1
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, -5, 0, False)
+    rl.numIters = 100
+    rl.incorporateFeedback(-1, 2, 10, -2, True)
+    gold = {1:1, -1:2}
+
+    self.assertEqual(rl.pi, gold, msg=f"Incorrect implementation of incorporateFeedback!")
+
 
   @graded(is_hidden=True)
-  def test_hidden(self):
-    """3a-hidden-0:  Hidden test for ValueIteration. Run ValueIteration on BlackjackMDP, then test if V[startState] is correct."""
-    mdp = submission.BlackjackMDP(cardValues=[1, 3, 5, 8, 10], multiplicity=3,
-                                  threshold=40, peekCost=1)
-    startState = mdp.startState()
-    alg = util.ValueIteration()
-    alg.solve(mdp, .0001)
+  def test_2(self):
+    """3b-2-hidden: Comprehensive test for incorporateFeedback."""
+
+    mdp = util.NumberLineMDP()
+    rl = submission.ModelBasedMonteCarlo(mdp.actions, mdp.discount, calcValIterEvery=100, explorationProb=0.2)
+    rl.numIters = 1
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    rl.incorporateFeedback(0, 1, -5, -1, False)
+    rl.incorporateFeedback(0, 2, -5, 1, False)
+    rl.incorporateFeedback(0, 2, -5, -1, False)
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, -5, 0, False)
+    rl.incorporateFeedback(1, 2, 50, 2, True)
+    rl.incorporateFeedback(1, 2, -5, 0, False)
+    rl.incorporateFeedback(-1, 1, -5, 0, False)
+    rl.incorporateFeedback(-1, 2, -5, 0, False)
+    rl.numIters = 100
+    rl.incorporateFeedback(-1, 2, 10, -2, True)
     # BEGIN_HIDE
     # END_HIDE
+        
+  @graded(is_hidden=True)
+  def test_3(self):
+    """3b-3-hidden: Edge case handling."""
+
+    mdp = util.NumberLineMDP()
+    rl = submission.ModelBasedMonteCarlo(mdp.actions, mdp.discount, calcValIterEvery=1, explorationProb=0.2)
+    counts = dict()
+    for state in range(-mdp.n, mdp.n + 1):
+        counts[state] = 0
+    for _ in range(10000):
+        for state in counts:
+            action = rl.getAction(state)
+            if action == 1:
+                counts[state] += 1
+    # BEGIN_HIDE
+    # END_HIDE
+
 
 class Test_4a(GradedTestCase):
+  
+  @graded()
+  def test_0(self):
+    """4a-0-basic: Basic test for incorporateFeedback."""
 
-  @graded(timeout=10)
-  def test_basic(self):
-    """4a-basic-0:  Basic test for incorporateFeedback() using NumberLineMDP."""
     mdp = util.NumberLineMDP()
-    mdp.computeStates()
-    rl = submission.QLearningAlgorithm(mdp.actions, mdp.discount(),
-                                       submission.identityFeatureExtractor,
-                                       0)
-    # We call this here so that the stepSize will be 1
-    rl.numIters = 1
+    rl = submission.TabularQLearning(mdp.actions, mdp.discount, explorationProb=0.15)
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    self.assertEqual(0, rl.Q[(1, 2)])
+    self.assertEqual(0, rl.Q[(1, 1)])
+    self.assertEqual(-0.5, rl.Q[(0, 1)])
+    
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    self.assertEqual(5.0, rl.Q[(1,1)])
+    self.assertEqual(0, rl.Q[(1,2)])
+    self.assertEqual(-0.5, rl.Q[(0,1)])
 
-    rl.incorporateFeedback(0, 1, 0, 1)
-    self.assertEqual(0, rl.getQ(0, -1))
-    self.assertEqual(0, rl.getQ(0, 1))
+    rl.incorporateFeedback(-1, 2, -5, 0, False)
+    self.assertEqual(5.0, rl.Q[(1, 1)])
+    self.assertEqual(0, rl.Q[(1, 2)])
+    self.assertEqual(-0.5, rl.Q[(0, 1)])
+    self.assertEqual(0, rl.Q[(0, 2)])
+    self.assertEqual(-0.5, rl.Q[(-1, 2)])
 
-    rl.incorporateFeedback(1, 1, 1, 2)
-    self.assertEqual(0, rl.getQ(0, -1))
-    self.assertEqual(0, rl.getQ(0, 1))
-    self.assertEqual(0, rl.getQ(1, -1))
-    self.assertEqual(1, rl.getQ(1, 1))
+  @graded()
+  def test_1(self):
+    """4a-1-basic: Basic test for getAction."""
 
-    rl.incorporateFeedback(2, -1, 1, 1)
-    self.assertEqual(1.9, rl.getQ(2, -1))
-    self.assertEqual(0, rl.getQ(2, 1))
+    mdp = util.NumberLineMDP()
+    rl = submission.TabularQLearning(mdp.actions, mdp.discount, explorationProb=0.15)
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    rl.incorporateFeedback(0, 1, -5, -1, False)
+    rl.incorporateFeedback(0, 2, -5, 1, False)
+    rl.incorporateFeedback(0, 2, -5, -1, False)
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, -5, 0, False)
+    rl.incorporateFeedback(1, 2, 50, 2, True)
+    rl.incorporateFeedback(1, 2, -5, 0, False)
+    rl.incorporateFeedback(-1, 1, -5, 0, False)
+    rl.incorporateFeedback(-1, 1, 10, -2, True)
+    rl.incorporateFeedback(-1, 2, -5, 0, False)
+    pi = {
+        -1: 1,
+        0: 2,
+        1: 1
+    }
+    for state in range(-mdp.n+1, mdp.n):
+        self.assertEqual(pi[state], rl.getAction(state, explore=False), msg=f"Incorrect greedy action with the state {state}")
 
-  @graded(timeout=3, is_hidden=True)
-  def test_hidden(self):
-    """4a-hidden-0:  Hidden test for incorporateFeedback(). Run QLearningAlgorithm on smallMDP, then ensure that getQ returns reasonable value."""
-    smallMDP = self.run_with_solution_if_possible(submission,
-                                                  lambda sub_or_sol: sub_or_sol.BlackjackMDP(cardValues=[1,5], multiplicity=2, threshold=10, peekCost=1))
-    smallMDP.computeStates()
-    rl = submission.QLearningAlgorithm(smallMDP.actions, smallMDP.discount(),
-                                   submission.identityFeatureExtractor,
-                                   0.2)
-    util.simulate(smallMDP, rl, 30000)
+  @graded(is_hidden=True)
+  def test_2(self):
+    """4a-2-hidden: Hidden test for getAction."""
+
+    mdp = util.NumberLineMDP()
+    rl = submission.TabularQLearning(mdp.actions, mdp.discount, explorationProb=0.15)
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    rl.incorporateFeedback(0, 1, -5, 1, False)
+    rl.incorporateFeedback(0, 1, -5, -1, False)
+    rl.incorporateFeedback(0, 2, -5, 1, False)
+    rl.incorporateFeedback(0, 2, -5, -1, False)
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, 50, 2, True)
+    rl.incorporateFeedback(1, 1, -5, 0, False)
+    rl.incorporateFeedback(1, 2, 50, 2, True)
+    rl.incorporateFeedback(1, 2, -5, 0, False)
+    rl.incorporateFeedback(-1, 1, -5, 0, False)
+    rl.incorporateFeedback(-1, 1, 10, -2, True)
+    rl.incorporateFeedback(-1, 2, -5, 0, False)
     # BEGIN_HIDE
     # END_HIDE
 
 
-# NOTE: this is not a true "test" for grading purposes -- it's worth zero points.  This function exists to help you
-# as you're working on question 4b; this question requires a written response on the assignment, but you will need
-# to run some code to get the stats that will go into your answer.  Check out the partial implementation of the
-# 'simulate_QL_over_MDP' function in submission.py to see one place where you might consider printing these stats.
 class Test_4b(GradedTestCase):
 
-  @graded(timeout=60)
-  def test_helper(self):
-    """4b-helper-0:  Helper function to run Q-learning simulations for question 4b."""
-    submission.simulate_QL_over_MDP(submission.smallMDP, submission.identityFeatureExtractor)
-    submission.simulate_QL_over_MDP(submission.largeMDP, submission.identityFeatureExtractor)
-    # NOTE:  This is bad unit testing practice- the course staff is including
-    # always-skipped tests to make the test suite a one-stop shop for students.
-    # Production unit tests, in general, should not include test cases that
-    # always skip. Usually skipped tests are based on version number, available
-    # resources, etc.  For example, this library skips hidden tests on student
-    # machines because the solution resources are not available on those
-    # machines.
-    self.skipTest("This test case is a helper function for students.")
+  @graded()
+  def test_0(self):
+    """4b-0-basic: Basic test of fourierFeatureExtractor."""
+
+    feature = submission.fourierFeatureExtractor((0.5, 0.3), 1)
+    gold = np.load("4b-0-gold.npy", allow_pickle=True)
+    self.assertEqual(gold.size, feature.size, f"Returned feature does not have the correct dimension!")
+    gold_sorted = np.sort(gold)
+    feature_sorted = np.sort(feature)
+    for i in range(feature.size):
+        self.assertTrue(math.isclose(feature_sorted[i], gold_sorted[i]), msg=f"Wrong value for an element of the feature: expected {str(gold_sorted[i])} but got {str(feature_sorted[i])}")
+
 
 class Test_4c(GradedTestCase):
-  @graded(timeout=10)
-  def test_basic(self):
-    """4c-basic-0:  Basic test for blackjackFeatureExtractor.  Runs QLearningAlgorithm using blackjackFeatureExtractor, then checks to see that Q-values are correct."""
-    mdp = submission.BlackjackMDP(cardValues=[1, 5], multiplicity=2,
-                                  threshold=10, peekCost=1)
-    mdp.computeStates()
-    rl = submission.QLearningAlgorithm(mdp.actions, mdp.discount(),
-                                       submission.blackjackFeatureExtractor,
-                                       0)
-    # We call this here so that the stepSize will be 1
-    rl.numIters = 1
 
-    rl.incorporateFeedback((7, None, (0, 1)), 'Quit', 7, (7, None, None))
-    self.assertEqual(28, rl.getQ((7, None, (0, 1)), 'Quit'))
-    self.assertEqual(7, rl.getQ((7, None, (1, 0)), 'Quit'))
-    self.assertEqual(14, rl.getQ((2, None, (0, 2)), 'Quit'))
-    self.assertEqual(0, rl.getQ((2, None, (0, 2)), 'Take'))
+  @graded()
+  def test_0(self):
+    """4c-0-basic: Basic tests for getQ on FA."""
 
-class Test_4d(GradedTestCase):
-  @graded(timeout=60)
-  def test_helper(self):
-    """4d-helper-0:  Helper function to compare rewards when simulating RL over two different MDPs in question 4d."""
-    submission.compare_changed_MDP(submission.originalMDP, submission.newThresholdMDP, submission.blackjackFeatureExtractor)
-    # NOTE:  This is bad unit testing practice- the course staff is including
-    # always-skipped tests to make the test suite a one-stop shop for students.
-    # Production unit tests, in general, should not include test cases that
-    # always skip. Usually skipped tests are based on version number, available
-    # resources, etc.  For example, this library skips hidden tests on student
-    # machines because the solution resources are not available on those
-    # machines.
-    self.skipTest("This test case is a helper function for students.")
+    mdp = util.ContinuousGymMDP("MountainCar-v0", discount=0.999, timeLimit=1000)
+    rl = submission.FunctionApproxQLearning(36,
+        lambda s, a: submission.fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
+        mdp.actions, mdp.discount, explorationProb=0.2)
+    rl.W = np.zeros((36, 3))
+    rl.incorporateFeedback((0, 0), 1, -1, (-0.2, -0.01), False)
+    rl.incorporateFeedback((0.7, -0.03), 2, -1, (0.8, -0.01), False)
+    rl.incorporateFeedback((-0.3, -0.05), 0, -1, (-0.4, -0.03), False)
+
+    self.assertTrue(math.isclose(rl.getQ((0.2, -0.02), 1), -0.0074065262637628875, abs_tol=1e-6), msg=f"Wrong Q value computed for given state and action!")
+
+  @graded()
+  def test_1(self):
+    """4c-1-basic: Basic tests for getAction on FA."""
+
+    mdp = util.ContinuousGymMDP("MountainCar-v0", discount=0.999, timeLimit=1000)
+    rl = submission.FunctionApproxQLearning(36,
+        lambda s, a: submission.fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
+        mdp.actions, mdp.discount, explorationProb=0.2)
+    rl.W = np.zeros((36, 3))
+    rl.incorporateFeedback((0, 0), 1, -1, (-0.2, -0.01), False)
+    rl.incorporateFeedback((0.7, -0.03), 2, -1, (0.8, -0.01), False)
+    rl.incorporateFeedback((-0.3, -0.05), 0, -1, (-0.4, -0.03), False)
+
+    action = rl.getAction((0.2, -0.02), explore=False)
+    self.assertEqual(0, action, msg=f"Wrong action based on current weight!")
+    
+    action = rl.getAction((1, 0.03), explore=False)
+    self.assertEqual(2, action, msg=f"Wrong action based on current weight!")
+    
+    action = rl.getAction((-0.6, -0.06), explore=False)
+    self.assertEqual(0, action, msg=f"Wrong action based on current weight!")
 
 
-############################################################
-# Problem 5
+  @graded(timeout=-1)
+  def test_2(self):
+    """4c-2-basic: Basic tests for incorporateFeedback on FA."""
 
-#BEGIN_HIDE
-#END_HIDE
-
-class Test_5a(GradedTestCase):
-  @graded(timeout=60)
-  def test_helper(self):
-    """5a-helper-0:  Helper function to compare optimal policies over various time horizons."""
-
-    submission.compare_MDP_Strategies(submission.short_time, submission.long_time)
-
-    self.skipTest("This test case is a helper function for students.")
-
-class Test_5c(GradedTestCase):
-  @graded(timeout=60)
-  def test_helper(self):
-    """5c-helper-0:  Helper function to compare optimal policies over various discounts."""
-
-    submission.compare_MDP_Strategies(submission.discounted, submission.no_discount)
-
-    self.skipTest("This test case is a helper function for students.")
-
-class Test_5d(GradedTestCase):
-  @graded(timeout=60)
-  def test_helper(self):
-    """5d-helper-0:  Helper function for exploring how optimal policies transfer across MDPs."""
-
-    submission.compare_changed_SeaLevelMDP(submission.low_cost, submission.high_cost)
-
-    self.skipTest("This test case is a helper function for students.")
-
+    mdp = util.ContinuousGymMDP("MountainCar-v0", discount=0.999, timeLimit=1000)
+    rl = submission.FunctionApproxQLearning(36,
+        lambda s, a: submission.fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
+        mdp.actions, mdp.discount, explorationProb=0.2)
+    rl.W = np.zeros((36, 3))
+    rl.incorporateFeedback((0, 0), 1, -1, (-0.2, -0.01), False)
+    rl.incorporateFeedback((0.7, -0.03), 2, -1, (0.8, -0.01), False)
+    rl.incorporateFeedback((-0.3, -0.05), 0, -1, (-0.4, -0.03), False)
+    gold = np.load("4c-2-gold.npy", allow_pickle=True)
+        
+    for i in range(36):
+        self.assertTrue(any(np.all(np.isclose(gold[i], rl.W[j], atol=1e-6)) for j in range(36)), msg="Weight update incorrect!")
+        self.assertTrue(any(np.all(np.isclose(gold[j], rl.W[i], atol=1e-6)) for j in range(36)), msg="Weight update incorrect!")
 
 def getTestCaseForTestID(test_id):
   question, part, _ = test_id.split('-')
