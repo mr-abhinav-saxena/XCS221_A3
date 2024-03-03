@@ -1,7 +1,8 @@
 \item \points{1b}
-Based on $V_\text{opt}(s)$ after the second iteration, what is the corresponding
-optimal policy $\pi_\text{opt}$ for all non-terminal states?
 
+Using $V^\star_2(\cdot)$, what is the corresponding optimal policy $\pi^\star$ for all non-end states?
+
+\textbf{What we expect: } Optimal policy $\pi^\star(s)$ for each non-end state.
 
 🐍
 import re
