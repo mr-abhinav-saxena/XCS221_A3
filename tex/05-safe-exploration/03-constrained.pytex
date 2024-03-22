@@ -5,10 +5,10 @@ In ConstrainedQLearning, implement constraints on the set of actions the agent c
 Remember to handle the case where the set of valid actions is empty. Below is the equation for calculating the velocity at time step t+1. 
 $$\text{velocity}_{t+1} = \text{velocity}_t + (\text{action} - 1) * \text{force} - \cos(3 * \text{position}_t) * \text{gravity}$$
 We've determined that in the mountain car environment, a velocity of 0.065 is considered unsafe. After implementing the velocity constraint,
-run grader test 5c-helper to examine the optimal policy for two continuous MDPs running Q-Learning (one with max\_speed of 0.065 and the other with a very large max\_speed constraint).
+run grader test 5c-0-helper to examine the optimal policy for two continuous MDPs running Q-Learning (one with max\_speed of 0.065 and the other with a very large max\_speed constraint).
 Provide 1-2 sentences explaining why the output policies are now different. 
 
-\textbf{What we expect:} Complete the implmentation of \texttt{ConstrainedQLearning} in \texttt{submission.py}, then run \texttt{python3 grader.py 5c-helper}. Include 1-2 sentences explaining the difference in the two scenarios.
+\textbf{What we expect:} Complete the implmentation of \texttt{ConstrainedQLearning} in \texttt{submission.py}, then run \texttt{python3 grader.py 5c-0-helper}. Include 1-2 sentences explaining the difference in the two scenarios.
 
 
 % FIX
