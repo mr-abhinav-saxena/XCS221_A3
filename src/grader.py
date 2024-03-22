@@ -290,6 +290,17 @@ class Test_4c(GradedTestCase):
         self.assertTrue(any(np.all(np.isclose(gold[i], rl.W[j], atol=1e-6)) for j in range(36)), msg="Weight update incorrect!")
         self.assertTrue(any(np.all(np.isclose(gold[j], rl.W[i], atol=1e-6)) for j in range(36)), msg="Weight update incorrect!")
 
+
+class Test_5c(GradedTestCase):
+
+    @graded(timeout=60)
+    def test_0(self):
+        """5c-0-helper: Helper function to compare optimal policies over max speed constraints."""
+
+        submission.compare_MDP_Strategies(submission.mdp1, submission.mdp2)
+
+        self.skipTest("This test case is a helper function for students.")
+
 def getTestCaseForTestID(test_id):
   question, part, _ = test_id.split('-')
   g = globals().copy()

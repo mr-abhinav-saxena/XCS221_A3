@@ -34,5 +34,6 @@
 
   "5b" : {"points":1, "question_id":"5b", "is_written":true, "is_extra_credit":false},
 
-  "5c" : {"points":2, "question_id":"5c", "is_written":true, "is_extra_credit":false}
+  "5c" : {"points":2, "question_id":"5c", "is_written":true, "is_extra_credit":false},
+  "5c-0-helper" : {"points":0, "question_id":"5c", "is_written":true, "is_extra_credit":false}
 }
