@@ -235,7 +235,7 @@ def polynomialFeatureExtractor(
         # Do shape (len(currPolyFeat), 1) times shape (1, degree+1) multiplication 
         # to get broadcasted result of shape (len(currPolyFeat), degree+1)
         # Note that this is also known as the vector outer product.
-        currPolyFeat = currPolyFeat.reshape((len(currPolyFeat), 1)) * newPolyFeat.reshape((1, degree))
+        currPolyFeat = currPolyFeat.reshape((len(currPolyFeat), 1)) * newPolyFeat.reshape((1, degree+1))
         
         # Flatten to (len(currPolyFeat) * (degree+1),) array for the next iteration or final features.
         currPolyFeat = currPolyFeat.flatten()
