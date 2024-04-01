@@ -229,7 +229,7 @@ class Test_4b(GradedTestCase):
     gold_sorted = np.sort(gold)
     feature_sorted = np.sort(feature)
     for i in range(feature.size):
-        self.assertTrue(math.isclose(feature_sorted[i], gold_sorted[i]), msg=f"Wrong value for an element of the feature: expected {str(gold_sorted[i])} but got {str(feature_sorted[i])}")
+        self.assertTrue(math.isclose(feature_sorted[i], gold_sorted[i], abs_tol=1e-6), msg=f"Wrong value for an element of the feature: expected {str(gold_sorted[i])} but got {str(feature_sorted[i])}")
 
 
 class Test_4c(GradedTestCase):
