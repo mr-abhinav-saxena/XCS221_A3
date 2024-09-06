@@ -174,7 +174,7 @@ class RLAlgorithm:
 
     # We will call this function when simulating an MDP, and you should update
     # parameters.
-    # If |state| is a terminal state, this function will be called with (s, a,
+    # If |nextState| is a terminal state, this function will be called with (s, a,
     # 0, None). When this function is called, it indicates that taking action
     # |action| in state |state| resulted in reward |reward| and a transition to state
     # |nextState|.

@@ -153,12 +153,12 @@ class TabularQLearning(util.RLAlgorithm):
         # ### START CODE HERE ###
         # ### END CODE HERE ###
 
-    # Call this function to get the step size to update the weights.
+    # Call this function to get the step size to update the Q-values.
     def getStepSize(self) -> float:
         return 0.1
 
     # We will call this function with (s, a, r, s'), which you should use to update |Q|.
-    # Note that if s is a terminal state, then terminal will be True.  Remember to check for this.
+    # Note that if s' is a terminal state, then terminal will be True.  Remember to check for this.
     # You should update the Q values using self.getStepSize()
     def incorporateFeedback(self, state: StateT, action: ActionT, reward: float, nextState: StateT, terminal: bool) -> None:
         pass
@@ -243,7 +243,7 @@ class FunctionApproxQLearning(util.RLAlgorithm):
         return 0.005 * (0.99)**(self.numIters / 500)
 
     # We will call this function with (s, a, r, s'), which you should use to update |weights|.
-    # Note that if s is a terminal state, then terminal will be True.  Remember to check for this.
+    # Note that if s' is a terminal state, then terminal will be True.  Remember to check for this.
     # You should update W using self.getStepSize()
     def incorporateFeedback(self, state: np.ndarray, action: int, reward: float, nextState: np.ndarray, terminal: bool) -> None:
         pass
