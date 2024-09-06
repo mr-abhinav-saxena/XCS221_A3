@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max_speed",
         type=float,
-        help="Max speed constraint that only applies when doing function approximation",
+        help="Max speed constraint that only applies when doing function approximation or constrained Q-Learning",
     )
     args = parser.parse_args()
 
@@ -174,6 +174,7 @@ if __name__ == "__main__":
             mdp.discount,
             mdp.env.force,
             mdp.env.gravity,
+            args.max_speed,
             explorationProb=0.2,
         )
         trainRewards = simulate(mdp, rl, train=True, numTrials=3500, verbose=True)
