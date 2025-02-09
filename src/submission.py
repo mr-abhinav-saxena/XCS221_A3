@@ -91,6 +91,8 @@ class ModelBasedMonteCarlo(util.RLAlgorithm):
 
     # This algorithm will produce an action given a state.
     # Here we use the epsilon-greedy algorithm: with probability |explorationProb|, take a random action.
+    # ** Important ** due to explorationProb being quite small you should avoid querying for random numbers if not exploring,
+    # to avoid getting stuck in a local optima!
     # Should return random action if the given state is not in self.pi.
     # The input boolean |explore| indicates whether the RL algorithm is in train or test time. If it is false (test), we
     # should always follow the policy if available.
@@ -302,8 +304,8 @@ def compare_MDP_Strategies(mdp1: ContinuousGymMDP, mdp2: ContinuousGymMDP):
         lambda s, a: fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
         mdp1.actions,
         mdp1.discount,
-        mdp1.env.force,
-        mdp1.env.gravity,
+        mdp1.env.unwrapped.force,
+        mdp1.env.unwrapped.gravity,
         10000,
         explorationProb=0.2,
     )
@@ -312,8 +314,8 @@ def compare_MDP_Strategies(mdp1: ContinuousGymMDP, mdp2: ContinuousGymMDP):
         lambda s, a: fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
         mdp2.actions,
         mdp2.discount,
-        mdp2.env.force,
-        mdp2.env.gravity,
+        mdp2.env.unwrapped.force,
+        mdp2.env.unwrapped.gravity,
         0.065,
         explorationProb=0.2,
     )
