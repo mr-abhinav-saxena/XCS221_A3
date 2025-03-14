@@ -172,8 +172,8 @@ if __name__ == "__main__":
             lambda s, a: fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
             mdp.actions,
             mdp.discount,
-            mdp.env.force,
-            mdp.env.gravity,
+            mdp.env.unwrapped.force,
+            mdp.env.unwrapped.gravity,
             args.max_speed,
             explorationProb=0.2,
         )

@@ -123,8 +123,8 @@ if __name__ == "__main__":
             lambda s, a: fourierFeatureExtractor(s, a, maxCoeff=5, scale=[1, 15]),
             mdp.actions,
             mdp.discount,
-            mdp.env.force,
-            mdp.env.gravity,
+            mdp.env.unwrapped.force,
+            mdp.env.unwrapped.gravity,
             explorationProb=0.2,
         )
         rl.W = np.load("constrained_weights.npy", allow_pickle=True)
