@@ -141,6 +141,8 @@ class TabularQLearning(util.RLAlgorithm):
 
     # This algorithm will produce an action given a state.
     # Here we use the epsilon-greedy algorithm: with probability |explorationProb|, take a random action.
+    # ** Important ** due to explorationProb being quite small you should avoid querying for random numbers if not exploring,
+    # to avoid getting stuck in a local optima!
     # The input boolean |explore| indicates whether the RL algorithm is in train or test time. If it is false (test), we
     # should always choose the maximum Q-value action.
     def getAction(self, state: StateT, explore: bool = True) -> ActionT:
@@ -226,6 +228,8 @@ class FunctionApproxQLearning(util.RLAlgorithm):
 
     # This algorithm will produce an action given a state.
     # Here we use the epsilon-greedy algorithm: with probability |explorationProb|, take a random action.
+    # ** Important ** due to explorationProb being quite small you should avoid querying for random numbers if not exploring,
+    # to avoid getting stuck in a local optima!
     # The input boolean |explore| indicates whether the RL algorithm is in train or test time. If it is false (test), we
     # should always choose the maximum Q-value action.
     def getAction(self, state: np.ndarray, explore: bool = True) -> int:
@@ -268,6 +272,8 @@ class ConstrainedQLearning(FunctionApproxQLearning):
 
     # This algorithm will produce an action given a state.
     # Here we use the epsilon-greedy algorithm: with probability |explorationProb|, take a random action.
+    # ** Important ** due to explorationProb being quite small you should avoid querying for random numbers if not exploring,
+    # to avoid getting stuck in a local optima!
     # The input boolean |explore| indicates whether the RL algorithm is in train or test time. If it is false (test), we
     # should always choose the maximum Q-value action that is valid.
     def getAction(self, state: np.ndarray, explore: bool = True) -> int:
@@ -326,9 +332,9 @@ def sampleKRLTrajectories(mdp: ContinuousGymMDP, rl: ConstrainedQLearning):
     accelerate_left, no_accelerate, accelerate_right = 0, 0, 0
     for n in range(100):
         traj = util.sample_RL_trajectory(mdp, rl)
-        accelerate_left = traj.count(0)
-        no_accelerate = traj.count(1)
-        accelerate_right = traj.count(2)
+        accelerate_left += traj.count(0)
+        no_accelerate += traj.count(1)
+        accelerate_right += traj.count(2)
 
     print(f"\nRL with MDP -> start state:{mdp.startState()}, max_speed:{rl.max_speed}")
     print(f"  *  total accelerate left actions: {accelerate_left}, total no acceleration actions: {no_accelerate}, total accelerate right actions: {accelerate_right}")
